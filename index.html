@@ -16,8 +16,8 @@
         <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-8 space-y-6">
             <div class="text-center space-y-2">
                 <div class="bg-indigo-600 w-12 h-12 rounded-2xl mx-auto flex items-center text-white justify-center shadow-lg">🔒</div>
-                <h2 class="text-xl font-bold text-slate-800">เข้าสู่ระบบ</h2>
-                <p class="text-xs text-slate-500">กรุณากรอกชื่อผู้ใช้งานและรหัสผ่าน</p>
+                <h2 class="text-xl font-bold text-slate-800">เข้าสู่ระบบ (PDPA Security)</h2>
+                <p class="text-xs text-slate-500">กรุณากรอกชื่อผู้ใช้งานและรหัสผ่านเพื่อเข้าถึงข้อมูลทางทะเบียน</p>
             </div>
             <form onsubmit="handleLogin(event)" class="space-y-4">
                 <div>
@@ -34,103 +34,226 @@
         </div>
     </div>
 
-    <!-- ส่วนเนื้อหาแดชบอร์ด -->
+    <!-- ส่วนเนื้อหาแดชบอร์ดหลัก -->
     <div id="appContent" class="hidden flex-col flex-grow">
         <header class="bg-indigo-700 text-white shadow-md sticky top-0 z-30">
-            <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-                <div>
-                    <h1 class="text-xl font-bold">ระบบติดตามกระบวนการทางทะเบียน</h1>
-                    <p id="userInfoDisplay" class="text-xs text-indigo-200">ผู้ใช้งาน: -</p>
+            <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+                <div class="flex items-center gap-3">
+                    <div class="bg-indigo-600 p-2.5 rounded-xl border border-indigo-500 shadow-inner">
+                        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold tracking-tight">ระบบติดตามกระบวนการทางทะเบียน</h1>
+                        <p id="userInfoDisplay" class="text-xs text-indigo-200">ฐานข้อมูล แดชบอร์ดกราฟสรุปผล และรายงานความคืบหน้า</p>
+                    </div>
                 </div>
-                <div class="flex gap-2">
-                    <button onclick="openModal()" class="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-xl text-sm font-medium">＋ เพิ่มรายการ</button>
-                    <button onclick="logout()" class="bg-rose-600 hover:bg-rose-700 text-white px-3 py-2 rounded-xl text-sm">ออกจากระบบ</button>
+                <div class="flex items-center gap-3">
+                    <button onclick="openModal()" class="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2.5 rounded-xl font-medium shadow-sm transition flex items-center gap-2 text-sm">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                        เพิ่มรายการคำขอใหม่
+                    </button>
+                    <button onclick="logout()" class="bg-rose-600 hover:bg-rose-700 text-white px-3 py-2.5 rounded-xl font-medium transition text-sm">ออกจากระบบ</button>
                 </div>
             </div>
         </header>
 
         <main class="max-w-7xl mx-auto px-4 py-6 flex-grow w-full space-y-6">
+            
+            <!-- สถิติ 5 การ์ด -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-                <div class="bg-white p-5 rounded-2xl shadow-sm border-2 border-indigo-600"><p class="text-xs text-slate-500 uppercase">คำขอทั้งหมด</p><h3 id="statTotal" class="text-2xl font-bold text-slate-800 mt-1">0</h3></div>
-                <div class="bg-white p-5 rounded-2xl shadow-sm border"><p class="text-xs text-slate-500 uppercase">1. ขอรับ (20%)</p><h3 id="statStatus1" class="text-2xl font-bold text-indigo-600 mt-1">0</h3></div>
-                <div class="bg-white p-5 rounded-2xl shadow-sm border"><p class="text-xs text-slate-500 uppercase">2. ตรวจสอบ (40%)</p><h3 id="statStatus2" class="text-2xl font-bold text-amber-600 mt-1">0</h3></div>
-                <div class="bg-white p-5 rounded-2xl shadow-sm border"><p class="text-xs text-slate-500 uppercase">ดำเนินการ/เสร็จ</p><h3 id="statCompleted" class="text-2xl font-bold text-emerald-600 mt-1">0</h3></div>
-                <div class="bg-white p-5 rounded-2xl shadow-sm border"><p class="text-xs text-slate-500 uppercase">ยุติการดำเนินการ</p><h3 id="statTerminated" class="text-2xl font-bold text-rose-600 mt-1">0</h3></div>
+                <div id="card-ALL" onclick="filterStatusCard('ALL')" class="bg-white p-5 rounded-2xl shadow-sm border-2 border-indigo-600 flex items-center justify-between cursor-pointer transition group">
+                    <div><p class="text-xs font-medium text-slate-500 uppercase">คำขอทั้งหมด</p><h3 id="statTotal" class="text-2xl font-bold text-slate-800 mt-1">0</h3></div>
+                </div>
+                <div id="card-1" onclick="filterStatusCard('1')" class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between cursor-pointer transition group">
+                    <div><p class="text-xs font-medium text-slate-500 uppercase">1. ขอรับคำขอ (20%)</p><h3 id="statStatus1" class="text-2xl font-bold text-indigo-600 mt-1">0</h3></div>
+                </div>
+                <div id="card-2" onclick="filterStatusCard('2')" class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between cursor-pointer transition group">
+                    <div><p class="text-xs font-medium text-slate-500 uppercase">2. ตรวจสอบเอกสาร (40%)</p><h3 id="statStatus2" class="text-2xl font-bold text-amber-600 mt-1">0</h3></div>
+                </div>
+                <div id="card-3_4" onclick="filterStatusCard('3_4')" class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between cursor-pointer transition group">
+                    <div><p class="text-xs font-medium text-slate-500 uppercase">ดำเนินการ / เสร็จสิ้น</p><h3 id="statCompleted" class="text-2xl font-bold text-emerald-600 mt-1">0</h3></div>
+                </div>
+                <div id="card-5" onclick="filterStatusCard('5')" class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between cursor-pointer transition group">
+                    <div><p class="text-xs font-medium text-slate-500 uppercase">ยุติการดำเนินการ (0%)</p><h3 id="statTerminated" class="text-2xl font-bold text-rose-600 mt-1">0</h3></div>
+                </div>
             </div>
 
-            <div class="bg-white rounded-2xl shadow-sm border overflow-hidden">
-                <div class="p-4 border-b flex justify-between items-center bg-slate-50">
-                    <h2 class="font-bold text-slate-700">รายการทั้งหมด</h2>
-                    <button onclick="loadDataFromSheet()" id="refreshBtn" class="px-3 py-1 bg-indigo-50 text-indigo-700 rounded-lg text-xs">🔄 โหลดข้อมูล</button>
+            <!-- กราฟ 2 ฝั่ง -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+                    <h3 class="font-bold text-slate-700 text-sm mb-4">ภาพรวมสัดส่วน 5 สถานะการดำเนินงาน</h3>
+                    <div class="relative h-64 flex justify-center"><canvas id="statusChart"></canvas></div>
+                </div>
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+                    <h3 class="font-bold text-slate-700 text-sm mb-4">ภาพรวมรายการที่ยื่น (รายการ 6, 7, 8)</h3>
+                    <div class="relative h-64 flex justify-center"><canvas id="requestTypeChart"></canvas></div>
+                </div>
+            </div>
+
+            <!-- ส่วนฟิลเตอร์และค้นหา -->
+            <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col gap-4">
+                <div class="flex flex-wrap items-center gap-2">
+                    <span class="text-sm font-medium text-slate-600">รายการที่ยื่น:</span>
+                    <button onclick="filterType('ALL')" id="btn-all" class="filter-btn px-3 py-1.5 text-xs font-medium rounded-lg bg-indigo-50 text-indigo-700 font-bold transition">ทั้งหมด</button>
+                    <button onclick="filterType('6')" id="btn-6" class="filter-btn px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-100 text-slate-600 transition">รายการ 6</button>
+                    <button onclick="filterType('7')" id="btn-7" class="filter-btn px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-100 text-slate-600 transition">รายการ 7</button>
+                    <button onclick="filterType('8')" id="btn-8" class="filter-btn px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-100 text-slate-600 transition">รายการ 8</button>
+                    <span class="text-slate-300 mx-1">|</span>
+                    <span class="text-sm font-medium text-slate-600">วันที่ยื่นคำขอ:</span>
+                    <input type="date" id="filterDate" onchange="renderAll()" class="px-3 py-1 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-700">
+                    <button onclick="clearDateFilter()" class="text-xs text-rose-500 hover:underline">ล้างวันที่</button>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100">
+                    <span class="text-sm font-medium text-slate-600">กรองสถานะ:</span>
+                    <button onclick="filterStatusCard('ALL')" id="sbtn-ALL" class="status-filter-btn px-3 py-1.5 text-xs font-medium rounded-lg bg-indigo-600 text-white font-bold transition">ทุกสถานะ</button>
+                    <button onclick="filterStatusCard('1')" id="sbtn-1" class="status-filter-btn px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-100 text-slate-600 transition">1. ขอรับคำขอ</button>
+                    <button onclick="filterStatusCard('2')" id="sbtn-2" class="status-filter-btn px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-100 text-slate-600 transition">2. ตรวจสอบเอกสาร</button>
+                    <button onclick="filterStatusCard('3_4')" id="sbtn-3_4" class="status-filter-btn px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-100 text-slate-600 transition">ดำเนินการ / เสร็จสิ้น</button>
+                    <button onclick="filterStatusCard('5')" id="sbtn-5" class="status-filter-btn px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-100 text-slate-600 transition">5. ยุติ</button>
+                    
+                    <div class="ml-auto w-full md:w-64 mt-2 md:mt-0">
+                        <input type="text" id="searchInput" oninput="renderAll()" placeholder="ค้นหา ชื่อผู้ยื่น, ที่อยู่..." class="w-full px-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-xl">
+                    </div>
+                </div>
+            </div>
+
+            <!-- ตารางแสดงข้อมูล -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+                <div class="p-4 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-3 bg-slate-50/50">
+                    <div class="flex items-center gap-3">
+                        <h2 class="font-bold text-slate-700">รายการคำขอทางทะเบียนทั้งหมด</h2>
+                        <button onclick="loadDataFromSheet()" id="refreshBtn" class="px-3 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg text-xs font-medium transition">🔄 โหลดข้อมูล</button>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span id="activeFilterBadge" class="text-xs text-indigo-600 font-medium bg-indigo-50 px-2.5 py-1 rounded-lg">แสดงทั้งหมด</span>
+                        <button onclick="exportCSV()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-medium transition shadow-sm">Export CSV</button>
+                        <button onclick="exportPDF()" class="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-medium transition shadow-sm">Export PDF</button>
+                    </div>
                 </div>
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse text-sm">
+                    <table class="w-full text-left border-collapse">
                         <thead>
-                            <tr class="bg-slate-50 text-slate-500 text-xs uppercase border-b">
-                                <th class="py-3 px-4">วันที่ / รายการ</th>
-                                <th class="py-3 px-4">รายละเอียด</th>
-                                <th class="py-3 px-4">ที่อยู่</th>
-                                <th class="py-3 px-4">เจ้าบ้าน / เจ้าของ</th>
-                                <th class="py-3 px-4">สถานะ</th>
-                                <th class="py-3 px-4 text-center">หลักฐาน</th>
-                                <th class="py-3 px-4 text-center">จัดการ</th>
+                            <tr class="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider border-b border-slate-100">
+                                <th class="py-3 px-4 font-semibold">วันที่ยื่น / รายการ</th>
+                                <th class="py-3 px-4 font-semibold">รายละเอียดรายการ</th>
+                                <th class="py-3 px-4 font-semibold">ที่อยู่ (บ้านเลขที่, ซอย/หมู่, ถนน, ตำบล, อำเภอ, จังหวัด)</th>
+                                <th class="py-3 px-4 font-semibold">เจ้าบ้าน & เจ้าของ</th>
+                                <th class="py-3 px-4 font-semibold">สถานะ & ความคืบหน้า</th>
+                                <th class="py-3 px-4 font-semibold">หมายเหตุ</th>
+                                <th class="py-3 px-4 font-semibold text-center">หลักฐาน</th>
+                                <th class="py-3 px-4 font-semibold text-center">จัดการ</th>
                             </tr>
                         </thead>
-                        <tbody id="dataTableBody" class="divide-y divide-slate-100"></tbody>
+                        <tbody id="dataTableBody" class="divide-y divide-slate-100 text-sm"></tbody>
                     </table>
                 </div>
+                <div id="emptyState" class="hidden p-12 text-center"><p class="text-slate-500 font-medium">ไม่พบข้อมูลในระบบ</p></div>
             </div>
         </main>
     </div>
 
-    <!-- Modal เพิ่ม/แก้ไข -->
-    <div id="recordModal" class="fixed inset-0 bg-slate-900/50 z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 space-y-4">
-            <h3 id="modalTitle" class="text-lg font-bold">เพิ่มรายการใหม่</h3>
-            <form id="recordForm" onsubmit="handleFormSubmit(event)" class="space-y-4">
+    <!-- Modal ฟอร์ม -->
+    <div id="recordModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="p-5 border-b border-slate-100 flex justify-between items-center sticky top-0 bg-white z-10">
+                <h3 id="modalTitle" class="text-lg font-bold text-slate-800">เพิ่มรายการคำขอทางทะเบียนใหม่</h3>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">✕</button>
+            </div>
+            
+            <form id="recordForm" onsubmit="handleFormSubmit(event)" class="p-6 space-y-4">
                 <input type="hidden" id="recordId">
-                <div class="grid grid-cols-2 gap-4">
-                    <input type="date" id="requestDate" required class="px-3 py-2 bg-slate-50 border rounded-xl text-sm">
-                    <select id="requestType" required class="px-3 py-2 bg-slate-50 border rounded-xl text-sm">
-                        <option value="6">รายการ 6</option><option value="7">รายการ 7</option><option value="8">รายการ 8</option>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">วันที่ยื่นคำขอ *</label>
+                        <input type="date" id="requestDate" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">รายการที่ยื่น *</label>
+                        <select id="requestType" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm">
+                            <option value="6">รายการ 6</option><option value="7">รายการ 7</option><option value="8">รายการ 8</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">ชื่อผู้ยื่นคำขอ *</label>
+                        <input type="text" id="applicantName" required placeholder="นายสมชาย ใจดี" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">ทำรายการอะไร *</label>
+                        <input type="text" id="actionDetail" required placeholder="แจ้งย้ายที่อยู่เข้า" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm">
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">ชื่อเจ้าบ้าน *</label>
+                        <input type="text" id="houseMaster" required placeholder="นางสมศรี มั่งมี" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">เจ้าของรายการ (เจ้าหน้าที่) *</label>
+                        <input type="text" id="owner" required placeholder="นายทะเบียน ก" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm">
+                    </div>
+                </div>
+                <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
+                    <h4 class="text-xs font-bold text-slate-700 uppercase">รายละเอียดที่อยู่</h4>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <input type="text" id="houseNo" required placeholder="บ้านเลขที่" class="px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm">
+                        <input type="text" id="houseSoiMoo" required placeholder="ซอย/หมู่" class="px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm">
+                        <input type="text" id="houseRoad" required placeholder="ถนน" class="px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm">
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <input type="text" id="houseSubdistrict" required placeholder="ตำบล/แขวง" class="px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm">
+                        <input type="text" id="houseDistrict" required placeholder="อำเภอ/เขต" class="px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm">
+                        <select id="houseProvince" required class="px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm"></select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">สถานะการดำเนินงาน *</label>
+                    <select id="statusSelect" onchange="onStatusChange()" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm">
+                        <option value="1">1. ขอรับคำขอ (20%)</option>
+                        <option value="2">2. ตรวจสอบเอกสาร (40%)</option>
+                        <option value="3">3. ดำเนินการ (80%)</option>
+                        <option value="4">4. เสร็จสิ้น (100%)</option>
+                        <option value="5">5. ยุติ (0%)</option>
                     </select>
                 </div>
-                <input type="text" id="applicantName" required placeholder="ชื่อผู้ยื่นคำขอ" class="w-full px-3 py-2 bg-slate-50 border rounded-xl text-sm">
-                <input type="text" id="actionDetail" required placeholder="ทำรายการอะไร" class="w-full px-3 py-2 bg-slate-50 border rounded-xl text-sm">
-                <div class="grid grid-cols-2 gap-4">
-                    <input type="text" id="houseMaster" required placeholder="ชื่อเจ้าบ้าน" class="px-3 py-2 bg-slate-50 border rounded-xl text-sm">
-                    <input type="text" id="owner" required placeholder="เจ้าของรายการ" class="px-3 py-2 bg-slate-50 border rounded-xl text-sm">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">หมายเหตุ <span id="noteRequiredStar" class="text-rose-500 hidden">* (บังคับกรอกเมื่อยุติ)</span></label>
+                    <textarea id="note" rows="2" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm"></textarea>
+                    <p id="noteError" class="text-rose-500 text-xs mt-1 hidden">กรุณาระบุหมายเหตุเนื่องจากเลือกสถานะยุติ</p>
                 </div>
-                <div class="grid grid-cols-3 gap-2">
-                    <input type="text" id="houseNo" required placeholder="บ้านเลขที่" class="px-3 py-2 border rounded-xl text-sm">
-                    <input type="text" id="houseSoiMoo" required placeholder="ซอย/หมู่" class="px-3 py-2 border rounded-xl text-sm">
-                    <input type="text" id="houseRoad" required placeholder="ถนน" class="px-3 py-2 border rounded-xl text-sm">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">อัปโหลดรูปภาพหลักฐานจากเครื่อง</label>
+                    <input type="file" id="photoFile" accept="image/*" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:bg-indigo-50 file:text-indigo-700">
+                    <input type="hidden" id="existingPhotoUrl">
                 </div>
-                <div class="grid grid-cols-3 gap-2">
-                    <input type="text" id="houseSubdistrict" required placeholder="ตำบล" class="px-3 py-2 border rounded-xl text-sm">
-                    <input type="text" id="houseDistrict" required placeholder="อำเภอ" class="px-3 py-2 border rounded-xl text-sm">
-                    <select id="houseProvince" required class="px-3 py-2 border rounded-xl text-sm"></select>
-                </div>
-                <select id="statusSelect" required class="w-full px-3 py-2 bg-slate-50 border rounded-xl text-sm">
-                    <option value="1">1. ขอรับ (20%)</option><option value="2">2. ตรวจสอบ (40%)</option><option value="3">3. ดำเนินการ (80%)</option><option value="4">4. เสร็จสิ้น (100%)</option><option value="5">5. ยุติ (0%)</option>
-                </select>
-                <textarea id="note" placeholder="หมายเหตุ" class="w-full px-3 py-2 bg-slate-50 border rounded-xl text-sm"></textarea>
-                <input type="file" id="photoFile" accept="image/*" class="w-full text-xs">
-                <input type="hidden" id="existingPhotoUrl">
-                <div class="flex justify-end gap-2 pt-2">
-                    <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-100 rounded-xl text-sm">ยกเลิก</button>
-                    <button type="submit" id="submitBtn" class="px-5 py-2 bg-indigo-600 text-white rounded-xl text-sm">บันทึก</button>
+                <div class="pt-4 flex justify-end gap-3 border-t border-slate-100">
+                    <button type="button" onclick="closeModal()" class="px-4 py-2 text-sm text-slate-600 bg-slate-100 rounded-xl">ยกเลิก</button>
+                    <button type="submit" id="submitBtn" class="px-5 py-2 text-sm text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-sm">บันทึกข้อมูล</button>
                 </div>
             </form>
         </div>
     </div>
 
+    <!-- Modal ดูรูปภาพ -->
+    <div id="imageModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden" onclick="closeImageModal()">
+        <div class="bg-white p-3 rounded-2xl max-w-lg w-full relative">
+            <button onclick="closeImageModal()" class="absolute -top-3 -right-3 bg-white text-slate-700 rounded-full p-2 shadow-lg">✕</button>
+            <img id="modalImagePreview" src="" alt="หลักฐาน" class="w-full h-auto rounded-xl max-h-[80vh] object-contain">
+        </div>
+    </div>
+
     <script>
-        // แทนที่ URL ด้านล่างนี้ด้วย URL Web App ที่ได้จากการ Deploy ใน Google Apps Script ของคุณ
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwxICO9TZkNjB8CYKRjCM2Kf9jhTBk1GB6a6BtI5ROUY1HStMvIKtlLwCvonWBiqXHUDQ/exec";
 
         const all77Provinces = ["กรุงเทพมหานคร", "สมุทรปราการ", "สมุทรสาคร", "กระบี่", "กาญจนบุรี", "กาฬสินธุ์", "กำแพงเพชร", "ขอนแก่น", "จันทบุรี", "ฉะเชิงเทรา", "ชลบุรี", "ชัยนาท", "ชัยภูมิ", "ชุมพร", "เชียงราย", "เชียงใหม่", "ตรัง", "ตราด", "ตาก", "นครนายก", "นครปฐม", "นครพนม", "นครราชสีมา", "นครศรีธรรมราช", "นครสวรรค์", "นนทบุรี", "นราธิวาส", "น่าน", "บึงกาฬ", "บุรีรัมย์", "ปทุมธานี", "ประจวบคีรีขันธ์", "ปราจีนบุรี", "ปัตตานี", "พระนครศรีอยุธยา", "พะเยา", "พังงา", "พัทลุง", "พิจิตร", "พิษณุโลก", "เพชรบุรี", "เพชรบูรณ์", "แพร่", "ภูเก็ต", "มหาสารคาม", "มุกดาหาร", "แม่ฮ่องสอน", "ยโสธร", "ยะลา", "ร้อยเอ็ด", "ระนอง", "ระยอง", "ราชบุรี", "ลพบุรี", "ลำปาง", "ลำพูน", "เลย", "ศรีสะเกษ", "สกลนคร", "สงขลา", "สตูล", "สมุทรสงคราม", "สระแก้ว", "สระบุรี", "สิงห์บุรี", "สุโขทัย", "สุพรรณบุรี", "สุราษฎร์ธานี", "สุรินทร์", "หนองคาย", "หนองบัวลำภู", "อ่างทอง", "อำนาจเจริญ", "อุดรธานี", "อุตรดิตถ์", "อุทัยธานี", "อุบลราชธานี"];
+        
         let records = [];
+        let currentFilter = 'ALL';
+        let currentStatusFilter = 'ALL';
+        let statusChartInstance = null;
+        let requestTypeChartInstance = null;
 
         window.onload = function() {
             const select = document.getElementById('houseProvince');
@@ -144,10 +267,7 @@
             const password = document.getElementById('loginPass').value;
             document.getElementById('loginBtn').innerText = 'กำลังตรวจสอบ...';
 
-            fetch(WEB_APP_URL, {
-                method: 'POST',
-                body: JSON.stringify({ action: 'checkLogin', username, password })
-            })
+            fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: 'checkLogin', username, password }) })
             .then(res => res.json())
             .then(res => {
                 if (res.success) {
@@ -160,66 +280,242 @@
                     document.getElementById('loginBtn').innerText = 'เข้าสู่ระบบ';
                 }
             })
-            .catch(err => {
-                alert('เกิดข้อผิดพลาดในการเชื่อมต่อ: ' + err);
-                document.getElementById('loginBtn').innerText = 'เข้าสู่ระบบ';
-            });
+            .catch(err => { alert('Error: ' + err); document.getElementById('loginBtn').innerText = 'เข้าสู่ระบบ'; });
         }
 
         function logout() { location.reload(); }
 
         function loadDataFromSheet() {
             document.getElementById('refreshBtn').innerText = '⏳ กำลังโหลด...';
-            fetch(WEB_APP_URL, {
-                method: 'POST',
-                body: JSON.stringify({ action: 'getData' })
-            })
+            fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: 'getData' }) })
             .then(res => res.json())
             .then(data => {
                 records = data;
                 document.getElementById('refreshBtn').innerText = '🔄 โหลดข้อมูล';
-                renderTable();
+                renderAll();
             })
-            .catch(err => alert('โหลดข้อมูลไม่สำเร็จ: ' + err));
+            .catch(err => { alert('โหลดข้อมูลไม่สำเร็จ: ' + err); document.getElementById('refreshBtn').innerText = '🔄 โหลดข้อมูล'; });
         }
 
-        function renderTable() {
-            document.getElementById('statTotal').innerText = records.length;
-            document.getElementById('statStatus1').innerText = records.filter(r => String(r.status) === '1').length;
-            document.getElementById('statStatus2').innerText = records.filter(r => String(r.status) === '2').length;
-            document.getElementById('statCompleted').innerText = records.filter(r => ['3', '4'].includes(String(r.status))).length;
-            document.getElementById('statTerminated').innerText = records.filter(r => String(r.status) === '5').length;
+        function calculateStatusMetrics(statusCode) {
+            let progress = 0, group = 'อยู่ระหว่างดำเนินการ', badgeColor = 'bg-amber-50 text-amber-700 border-amber-200';
+            switch(String(statusCode)) {
+                case '1': progress = 20; badgeColor = 'bg-blue-50 text-blue-700 border-blue-200'; break;
+                case '2': progress = 40; badgeColor = 'bg-amber-50 text-amber-700 border-amber-200'; break;
+                case '3': progress = 80; badgeColor = 'bg-indigo-50 text-indigo-700 border-indigo-200'; break;
+                case '4': progress = 100; group = 'ดำเนินการเสร็จสิ้น'; badgeColor = 'bg-emerald-50 text-emerald-700 border-emerald-200'; break;
+                case '5': progress = 0; group = 'ยุติการดำเนินการ'; badgeColor = 'bg-rose-50 text-rose-700 border-rose-200'; break;
+            }
+            return { progress, group, badgeColor };
+        }
 
-            const tbody = document.getElementById('dataTableBody');
-            tbody.innerHTML = '';
-            records.forEach(r => {
-                tbody.innerHTML += `
-                    <tr class="hover:bg-slate-50">
-                        <td class="py-3 px-4"><div class="text-xs font-bold text-indigo-600">${r.requestDate}</div>รายการ ${r.requestType} - <b>${r.applicantName}</b></td>
-                        <td class="py-3 px-4 text-slate-600">${r.actionDetail}</td>
-                        <td class="py-3 px-4 text-xs">ต.${r.houseSubdistrict} อ.${r.houseDistrict}</td>
-                        <td class="py-3 px-4 text-xs">เจ้าบ้าน: ${r.houseMaster}</td>
-                        <td class="py-3 px-4"><span class="px-2 py-1 rounded text-xs bg-indigo-50 text-indigo-700">สถานะ ${r.status}</span></td>
-                        <td class="py-3 px-4 text-center">${r.photo ? `<a href="${r.photo}" target="_blank" class="text-indigo-600 underline text-xs">ดูรูป</a>` : '-'}</td>
-                        <td class="py-3 px-4 text-center">
-                            <button onclick="editRecord('${r.id}')" class="text-indigo-600 mr-2">✏️</button>
-                            <button onclick="deleteRecord('${r.id}')" class="text-rose-600">🗑️</button>
-                        </td>
-                    </tr>`;
+        function getStatusLabel(statusCode) {
+            switch(String(statusCode)) {
+                case '1': return '1. ขอรับคำขอ';
+                case '2': return '2. ตรวจสอบเอกสาร';
+                case '3': return '3. ดำเนินการ';
+                case '4': return '4. เสร็จสิ้น';
+                case '5': return '5. ยุติ';
+                default: return 'ไม่ระบุ';
+            }
+        }
+
+        function onStatusChange() {
+            const status = document.getElementById('statusSelect').value;
+            const star = document.getElementById('noteRequiredStar');
+            if (status === '5') star.classList.remove('hidden');
+            else { star.classList.add('hidden'); document.getElementById('noteError').classList.add('hidden'); }
+        }
+
+        function filterType(type) {
+            currentFilter = type;
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.className = "filter-btn px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-100 text-slate-600 transition");
+            const activeBtn = type === 'ALL' ? document.getElementById('btn-all') : document.getElementById(`btn-${type}`);
+            if(activeBtn) activeBtn.className = "filter-btn px-3 py-1.5 text-xs font-medium rounded-lg bg-indigo-50 text-indigo-700 font-bold transition";
+            renderAll();
+        }
+
+        function filterStatusCard(statusGroup) {
+            currentStatusFilter = statusGroup;
+            ['ALL', '1', '2', '3_4', '5'].forEach(s => {
+                const btn = document.getElementById(`sbtn-${s}`);
+                if(btn) btn.className = s === statusGroup ? "status-filter-btn px-3 py-1.5 text-xs font-medium rounded-lg bg-indigo-600 text-white font-bold transition" : "status-filter-btn px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-100 text-slate-600 transition";
+                
+                const card = document.getElementById(`card-${s}`);
+                if(card) card.className = s === statusGroup ? "bg-white p-5 rounded-2xl shadow-sm border-2 border-indigo-600 flex items-center justify-between cursor-pointer transition group" : "bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between cursor-pointer transition group";
+            });
+            renderAll();
+        }
+
+        function clearDateFilter() { document.getElementById('filterDate').value = ''; renderAll(); }
+
+        function getBaseFilteredRecords() {
+            const dateVal = document.getElementById('filterDate').value;
+            return records.filter(r => {
+                const matchType = (currentFilter === 'ALL' || String(r.requestType) === currentFilter);
+                const matchDate = (!dateVal || String(r.requestDate).startsWith(dateVal));
+                return matchType && matchDate;
             });
         }
 
-        function openModal() {
-            document.getElementById('recordModal').classList.remove('hidden');
-            document.getElementById('recordForm').reset();
-            document.getElementById('recordId').value = '';
-            document.getElementById('requestDate').value = new Date().toISOString().split('T')[0];
+        function getTableFilteredRecords() {
+            const baseFiltered = getBaseFilteredRecords();
+            const searchVal = document.getElementById('searchInput').value.toLowerCase();
+            return baseFiltered.filter(r => {
+                const matchStatus = (currentStatusFilter === 'ALL') || 
+                                    (currentStatusFilter === '3_4' && ['3', '4'].includes(String(r.status))) || 
+                                    (String(r.status) === currentStatusFilter);
+                const fullAddress = `${r.houseNo} ${r.houseSoiMoo} ${r.houseRoad} ${r.houseSubdistrict} ${r.houseDistrict} ${r.houseProvince}`.toLowerCase();
+                return String(r.applicantName).toLowerCase().includes(searchVal) || fullAddress.includes(searchVal) || String(r.houseMaster).toLowerCase().includes(searchVal) || String(r.actionDetail).toLowerCase().includes(searchVal);
+            });
         }
+
+        function updateStats(baseFilteredRecords) {
+            document.getElementById('statTotal').innerText = baseFilteredRecords.length;
+            document.getElementById('statStatus1').innerText = baseFilteredRecords.filter(r => String(r.status) === '1').length;
+            document.getElementById('statStatus2').innerText = baseFilteredRecords.filter(r => String(r.status) === '2').length;
+            document.getElementById('statCompleted').innerText = baseFilteredRecords.filter(r => ['3', '4'].includes(String(r.status))).length;
+            document.getElementById('statTerminated').innerText = baseFilteredRecords.filter(r => String(r.status) === '5').length;
+        }
+
+        function initCharts(baseFilteredRecords) {
+            const c1 = baseFilteredRecords.filter(r => String(r.status) === '1').length;
+            const c2 = baseFilteredRecords.filter(r => String(r.status) === '2').length;
+            const c3 = baseFilteredRecords.filter(r => String(r.status) === '3').length;
+            const c4 = baseFilteredRecords.filter(r => String(r.status) === '4').length;
+            const c5 = baseFilteredRecords.filter(r => String(r.status) === '5').length;
+
+            const statusCtx = document.getElementById('statusChart').getContext('2d');
+            if (statusChartInstance) statusChartInstance.destroy();
+            statusChartInstance = new Chart(statusCtx, {
+                type: 'doughnut',
+                data: { labels: ['1. ขอรับคำขอ', '2. ตรวจสอบเอกสาร', '3. ดำเนินการ', '4. เสร็จสิ้น', '5. ยุติ'], datasets: [{ data: [c1, c2, c3, c4, c5], backgroundColor: ['#6366f1', '#f59e0b', '#3b82f6', '#10b981', '#f43f5e'], borderWidth: 2, borderColor: '#ffffff' }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { family: 'Sarabun', size: 11 } } } } }
+            });
+
+            const t6 = baseFilteredRecords.filter(r => String(r.requestType) === '6').length;
+            const t7 = baseFilteredRecords.filter(r => String(r.requestType) === '7').length;
+            const t8 = baseFilteredRecords.filter(r => String(r.requestType) === '8').length;
+
+            const typeCtx = document.getElementById('requestTypeChart').getContext('2d');
+            if (requestTypeChartInstance) requestTypeChartInstance.destroy();
+            requestTypeChartInstance = new Chart(typeCtx, {
+                type: 'bar',
+                data: { labels: ['รายการ 6', 'รายการ 7', 'รายการ 8'], datasets: [{ label: 'จำนวนคำขอ', data: [t6, t7, t8], backgroundColor: ['#4f46e5', '#06b6d4', '#8b5cf6'], borderRadius: 8 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } }, x: { grid: { display: false } } } }
+            });
+        }
+
+        function renderTable(finalFiltered) {
+            const tbody = document.getElementById('dataTableBody');
+            const emptyState = document.getElementById('emptyState');
+            const dateVal = document.getElementById('filterDate').value;
+            const badge = document.getElementById('activeFilterBadge');
+
+            let filterText = 'แสดงทั้งหมด';
+            if (currentStatusFilter === '1') filterText = 'สถานะ: 1. ขอรับคำขอ';
+            else if (currentStatusFilter === '2') filterText = 'สถานะ: 2. ตรวจสอบเอกสาร';
+            else if (currentStatusFilter === '3_4') filterText = 'สถานะ: ดำเนินการ / เสร็จสิ้น';
+            else if (currentStatusFilter === '5') filterText = 'สถานะ: ยุติ';
+            if (dateVal) filterText += ` | วันที่: ${dateVal}`;
+            if (currentFilter !== 'ALL') filterText += ` | รายการ: ${currentFilter}`;
+            badge.innerText = filterText;
+
+            tbody.innerHTML = '';
+            if (finalFiltered.length === 0) { emptyState.classList.remove('hidden'); return; }
+            emptyState.classList.add('hidden');
+
+            finalFiltered.forEach(r => {
+                const metrics = calculateStatusMetrics(r.status);
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50/80 transition";
+                tr.innerHTML = `
+                    <td class="py-3 px-4">
+                        <div class="text-xs font-bold text-indigo-600 mb-0.5">${r.requestDate ? String(r.requestDate).split('T')[0] : '-'}</div>
+                        <div class="flex items-center gap-2">
+                            <span class="px-2 py-0.5 text-[10px] font-bold rounded bg-slate-100 text-slate-700">รายการ ${r.requestType}</span>
+                            <span class="font-semibold text-slate-800">${r.applicantName}</span>
+                        </div>
+                    </td>
+                    <td class="py-3 px-4 text-slate-600">${r.actionDetail}</td>
+                    <td class="py-3 px-4">
+                        <div class="text-slate-800 font-medium">${r.houseNo} ซอย/หมู่: ${r.houseSoiMoo}</div>
+                        <div class="text-xs text-slate-400">ถ.${r.houseRoad} ต.${r.houseSubdistrict} อ.${r.houseDistrict} จ.${r.houseProvince}</div>
+                    </td>
+                    <td class="py-3 px-4">
+                        <div class="text-slate-800 font-medium">เจ้าบ้าน: ${r.houseMaster}</div>
+                        <div class="text-xs text-indigo-600">เจ้าของ: ${r.owner}</div>
+                    </td>
+                    <td class="py-3 px-4">
+                        <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${metrics.badgeColor}">
+                            ${getStatusLabel(r.status)} (${metrics.progress}%)
+                        </div>
+                    </td>
+                    <td class="py-3 px-4 text-slate-500 max-w-xs truncate">${r.note || '-'}</td>
+                    <td class="py-3 px-4 text-center">
+                        ${r.photo ? `<button onclick="showImage('${r.photo}')" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-medium">ดูรูป</button>` : `<span class="text-xs text-slate-300">ไม่มีรูป</span>`}
+                    </td>
+                    <td class="py-3 px-4 text-center">
+                        <div class="flex items-center justify-center gap-1">
+                            <button onclick="editRecord('${r.id}')" class="p-1.5 text-slate-400 hover:text-indigo-600 rounded-lg">✏️</button>
+                            <button onclick="deleteRecord('${r.id}')" class="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg">🗑️</button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function renderAll() {
+            const baseFiltered = getBaseFilteredRecords();
+            const tableFiltered = getTableFilteredRecords();
+            updateStats(baseFiltered);
+            initCharts(baseFiltered);
+            renderTable(tableFiltered);
+        }
+
+        function exportCSV() {
+            const data = getTableFilteredRecords();
+            if (data.length === 0) { alert('ไม่มีข้อมูลสำหรับส่งออก'); return; }
+            let csv = "\uFEFFรหัส,วันที่,รายการ,ผู้ยื่น,รายละเอียด,เจ้าบ้าน,บ้านเลขที่,ซอย/หมู่,ถนน,ตำบล,อำเภอ,จังหวัด,เจ้าของ,สถานะ,หมายเหตุ\r\n";
+            data.forEach(r => {
+                csv += `"${r.id}","${r.requestDate}","รายการ ${r.requestType}","${r.applicantName}","${r.actionDetail}","${r.houseMaster}","${r.houseNo}","${r.houseSoiMoo}","${r.houseRoad}","${r.houseSubdistrict}","${r.houseDistrict}","${r.houseProvince}","${r.owner}","${getStatusLabel(r.status)}","${r.note || ''}"\r\n`;
+            });
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = `registration_report_${new Date().toISOString().slice(0,10)}.csv`;
+            link.click();
+        }
+
+        function exportPDF() { window.print(); }
+
+        function openModal(id = null) {
+            document.getElementById('recordModal').classList.remove('hidden');
+            if (!id) {
+                document.getElementById('modalTitle').innerText = 'เพิ่มรายการคำขอทางทะเบียนใหม่';
+                document.getElementById('recordForm').reset();
+                document.getElementById('recordId').value = '';
+                document.getElementById('requestDate').value = new Date().toISOString().split('T')[0];
+                document.getElementById('existingPhotoUrl').value = '';
+                onStatusChange();
+            }
+        }
+
         function closeModal() { document.getElementById('recordModal').classList.add('hidden'); }
 
         function handleFormSubmit(e) {
             e.preventDefault();
             const id = document.getElementById('recordId').value || 'REC-' + Date.now().toString().slice(-4);
+            const status = document.getElementById('statusSelect').value;
+            const note = document.getElementById('note').value.trim();
+
+            if (status === '5' && !note) {
+                document.getElementById('noteError').classList.remove('hidden');
+                document.getElementById('note').focus();
+                return;
+            }
+
             const recordData = {
                 id,
                 requestDate: document.getElementById('requestDate').value,
@@ -234,8 +530,8 @@
                 houseDistrict: document.getElementById('houseDistrict').value,
                 houseProvince: document.getElementById('houseProvince').value,
                 owner: document.getElementById('owner').value,
-                status: document.getElementById('statusSelect').value,
-                note: document.getElementById('note').value,
+                status,
+                note,
                 photo: document.getElementById('existingPhotoUrl').value
             };
 
@@ -256,25 +552,13 @@
         }
 
         function sendToServer(record, fileData) {
-            fetch(WEB_APP_URL, {
-                method: 'POST',
-                body: JSON.stringify({ action: 'saveRecord', record, fileData })
-            })
+            fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: 'saveRecord', record, fileData }) })
             .then(res => res.json())
             .then(res => {
-                if (res.success) {
-                    closeModal();
-                    loadDataFromSheet();
-                    document.getElementById('submitBtn').innerText = 'บันทึก';
-                } else {
-                    alert('บันทึกไม่สำเร็จ');
-                    document.getElementById('submitBtn').innerText = 'บันทึก';
-                }
+                if (res.success) { closeModal(); loadDataFromSheet(); document.getElementById('submitBtn').innerText = 'บันทึกข้อมูล'; }
+                else { alert('บันทึกไม่สำเร็จ'); document.getElementById('submitBtn').innerText = 'บันทึกข้อมูล'; }
             })
-            .catch(err => {
-                alert('Error: ' + err);
-                document.getElementById('submitBtn').innerText = 'บันทึก';
-            });
+            .catch(err => { alert('Error: ' + err); document.getElementById('submitBtn').innerText = 'บันทึกข้อมูล'; });
         }
 
         function editRecord(id) {
@@ -298,21 +582,23 @@
             document.getElementById('note').value = r.note || '';
             document.getElementById('existingPhotoUrl').value = r.photo || '';
             document.getElementById('photoFile').value = '';
+            onStatusChange();
             document.getElementById('recordModal').classList.remove('hidden');
         }
 
         function deleteRecord(id) {
             if (confirm('ต้องการลบรายการนี้ใช่หรือไม่?')) {
-                fetch(WEB_APP_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({ action: 'deleteRecord', id })
-                })
+                fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: 'deleteRecord', id }) })
                 .then(res => res.json())
-                .then(res => {
-                    if (res.success) loadDataFromSheet();
-                });
+                .then(res => { if (res.success) loadDataFromSheet(); });
             }
         }
+
+        function showImage(url) {
+            document.getElementById('modalImagePreview').src = url;
+            document.getElementById('imageModal').classList.remove('hidden');
+        }
+        function closeImageModal() { document.getElementById('imageModal').classList.add('hidden'); }
     </script>
 </body>
 </html>
