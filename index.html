@@ -245,7 +245,7 @@
     </div>
 
     <script>
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwxICO9TZkNjB8CYKRjCM2Kf9jhTBk1GB6a6BtI5ROUY1HStMvIKtlLwCvonWBiqXHUDQ/exec";
+        const WEB_APP_URL = "ใส่_URL_เว็บแอป_ของคุณตรงนี้";
 
         const all77Provinces = ["กรุงเทพมหานคร", "สมุทรปราการ", "สมุทรสาคร", "กระบี่", "กาญจนบุรี", "กาฬสินธุ์", "กำแพงเพชร", "ขอนแก่น", "จันทบุรี", "ฉะเชิงเทรา", "ชลบุรี", "ชัยนาท", "ชัยภูมิ", "ชุมพร", "เชียงราย", "เชียงใหม่", "ตรัง", "ตราด", "ตาก", "นครนายก", "นครปฐม", "นครพนม", "นครราชสีมา", "นครศรีธรรมราช", "นครสวรรค์", "นนทบุรี", "นราธิวาส", "น่าน", "บึงกาฬ", "บุรีรัมย์", "ปทุมธานี", "ประจวบคีรีขันธ์", "ปราจีนบุรี", "ปัตตานี", "พระนครศรีอยุธยา", "พะเยา", "พังงา", "พัทลุง", "พิจิตร", "พิษณุโลก", "เพชรบุรี", "เพชรบูรณ์", "แพร่", "ภูเก็ต", "มหาสารคาม", "มุกดาหาร", "แม่ฮ่องสอน", "ยโสธร", "ยะลา", "ร้อยเอ็ด", "ระนอง", "ระยอง", "ราชบุรี", "ลพบุรี", "ลำปาง", "ลำพูน", "เลย", "ศรีสะเกษ", "สกลนคร", "สงขลา", "สตูล", "สมุทรสงคราม", "สระแก้ว", "สระบุรี", "สิงห์บุรี", "สุโขทัย", "สุพรรณบุรี", "สุราษฎร์ธานี", "สุรินทร์", "หนองคาย", "หนองบัวลำภู", "อ่างทอง", "อำนาจเจริญ", "อุดรธานี", "อุตรดิตถ์", "อุทัยธานี", "อุบลราชธานี"];
         
@@ -488,7 +488,107 @@
             link.click();
         }
 
-        function exportPDF() { window.print(); }
+        function exportPDF() {
+            const data = getTableFilteredRecords();
+            if (data.length === 0) {
+                alert('ไม่มีข้อมูลสำหรับส่งออก');
+                return;
+            }
+
+            const total = data.length;
+            const s1 = data.filter(r => String(r.status) === '1').length;
+            const s2 = data.filter(r => String(r.status) === '2').length;
+            const s3 = data.filter(r => String(r.status) === '3').length;
+            const s4 = data.filter(r => String(r.status) === '4').length;
+            const s5 = data.filter(r => String(r.status) === '5').length;
+
+            const now = new Date();
+            const thaiDate = `${now.getDate()}/${now.getMonth() + 1}/${now.getFullYear() + 543} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+
+            const printWindow = window.open('', '_blank');
+            let htmlContent = `
+                <!DOCTYPE html>
+                <html lang="th">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>รายงานความคืบหน้ากระบวนการทางทะเบียน</title>
+                    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
+                    <style>
+                        body { font-family: 'Sarabun', sans-serif; padding: 20px; color: #1e293b; background: #fff; }
+                        h2 { text-align: center; margin-bottom: 5px; font-size: 20px; font-weight: bold; }
+                        p.date { text-align: center; font-size: 12px; color: #64748b; margin-bottom: 20px; }
+                        .summary-box { background: #f8fafc; border: 1px solid #cbd5e1; padding: 16px; border-radius: 8px; margin-bottom: 20px; font-size: 13px; }
+                        .summary-box h3 { font-size: 15px; margin-bottom: 10px; font-weight: bold; color: #0f172a; }
+                        .summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+                        table { width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 10px; }
+                        th, td { border: 1px solid #cbd5e1; padding: 8px; text-align: left; vertical-align: top; }
+                        th { background-color: #f1f5f9; font-weight: bold; color: #334155; }
+                        tr:nth-child(even) { background-color: #f8fafc; }
+                        @media print { body { padding: 0; } }
+                    </style>
+                </head>
+                <body>
+                    <h2>รายงานความคืบหน้ากระบวนการทางทะเบียน</h2>
+                    <p class="date">พิมพ์เมื่อ: ${thaiDate}</p>
+                    
+                    <div class="summary-box">
+                        <h3>สรุปยอดสถิติแยกตามสถานะการดำเนินงาน</h3>
+                        <div class="summary-grid">
+                            <div>1. ขอรับคำขอ: <b>${s1}</b> รายการ</div>
+                            <div>2. ตรวจสอบเอกสาร: <b>${s2}</b> รายการ</div>
+                            <div>3. ดำเนินการ: <b>${s3}</b> รายการ</div>
+                            <div>4. เสร็จสิ้น: <b>${s4}</b> รายการ</div>
+                            <div>5. ยุติ: <b>${s5}</b> รายการ</div>
+                            <div><b>รวมทั้งสิ้น: ${total} รายการ</b></div>
+                        </div>
+                    </div>
+
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>วันที่ยื่น</th>
+                                <th>รายการ</th>
+                                <th>ผู้ยื่นคำขอ</th>
+                                <th>ทำรายการ</th>
+                                <th>ที่อยู่</th>
+                                <th>เจ้าบ้าน / เจ้าของ</th>
+                                <th>สถานะ</th>
+                                <th>หมายเหตุ</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+
+            data.forEach(r => {
+                const metrics = calculateStatusMetrics(r.status);
+                const fullAddress = `${r.houseNo || ''} ซอย/หมู่: ${r.houseSoiMoo || ''} ถ.${r.houseRoad || ''} ต.${r.houseSubdistrict || ''} อ.${r.houseDistrict || ''} จ.${r.houseProvince || ''}`;
+                htmlContent += `
+                    <tr>
+                        <td>${r.requestDate ? String(r.requestDate).split('T')[0] : '-'}</td>
+                        <td>รายการ ${r.requestType}</td>
+                        <td>${r.applicantName || '-'}</td>
+                        <td>${r.actionDetail || '-'}</td>
+                        <td>${fullAddress}</td>
+                        <td>${r.houseMaster || '-'} / ${r.owner || '-'}</td>
+                        <td>${getStatusLabel(r.status)} (${metrics.progress}%)</td>
+                        <td>${r.note || '-'}</td>
+                    </tr>
+                `;
+            });
+
+            htmlContent += `
+                        </tbody>
+                    </table>
+                    <script>
+                        window.onload = function() { window.print(); }
+                    <\/script>
+                </body>
+                </html>
+            `;
+
+            printWindow.document.write(htmlContent);
+            printWindow.document.close();
+        }
 
         function openModal(id = null) {
             document.getElementById('recordModal').classList.remove('hidden');
